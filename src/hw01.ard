@@ -18,19 +18,33 @@
    second' = flip (second 0)
 -}
 
+\func second (_ y _ : Nat) => y
+
+\func apply (f : Nat -> Nat) (x : Nat) => f x
+
+\func compose (f : Nat -> Nat) (g : Nat -> Nat) : Nat -> Nat => \lam (x : Nat) => f (g x)
+
+\func flip (f : Nat -> Nat -> Nat) (x : Nat) (y : Nat) => f y x
+
+\func second' => flip (second 0)
+
 -- 3. Расставьте приоритеты функций f1, f2, f3, f4, f5 и f6 так, чтобы функция test проходила тайпчекинг.
 
-\import lect01 \hiding (+,*)
+\import lect01 \hiding (+, *)
 
-\func f1 (x y : Nat) => x
+\func \infix 2 f1 (x y : Nat) => x
+
 \func f2 : Nat => 0
-\func f3 (f : Nat -> Nat) (z : Nat) : Int => 0
+
+\func \infix 1 f3 (f : Nat -> Nat) (z : Nat) : Int => 0
+
 \func f4 : Nat => 0
-\func f5 => f1
+
+\func \infix 2 f5 => f1
+
 \func f6 => f4
 
 \func test => f1 f2 f3 f4 f5 f6
-
 -- 4. Определите функцию if, аналогичную следующей функции:
 {- Haskell:
    if :: Bool -> Bool -> Bool -> Bool
@@ -38,20 +52,71 @@
    if False _ e = e
 -}
 
+\func if (b t f : Bool) : Bool \elim b
+  | true => t
+  | false => f
+
 -- 5. Определите || через if.
 
-\func \infixr 2 || (x y : Bool) : Bool => {?}
+\func \infixr 2 || (x y : Bool) : Bool => if x true y
 
 -- 6. Определите возведение в степень и факториал для натуральных чисел.
 
-\open Nat \hiding (-,div) -- Здесь лежат + и *.
+\open Nat \hiding (-, div) -- Здесь лежат + и *.
 
-\func \infixr 8 ^ (x y : Nat) => {?}
+\func \infixr 8 ^ (x y : Nat) : Nat \elim y
+  | suc y' => x * (x ^ y')
+  | zero => 1
 
-\func fac (x : Nat) => {?}
+\func fac (x : Nat) : Nat => fac' x x
+  \where
+    \func fac' (fuel x : Nat) : Nat \elim fuel
+      | suc x' => x * fac' x' x'
+      | zero => 1
 
 -- 7. Определите mod и gcd.
 
-\func mod (x y : Nat) => {?}
+\func eq (x y : Nat) : Bool \elim x, y
+  | suc x, suc y => eq x y
+  | zero, zero => true
+  | _, _ => false
 
-\func gcd (x y : Nat) => {?}
+\func ge (x y : Nat) : Bool \elim x, y
+  | suc x, suc y => ge x y
+  | suc x, zero => true
+  | zero, zero => true
+  | _, _ => false
+
+\func gt (x y : Nat) : Bool \elim x, y
+  | suc x, suc y => gt x y
+  | suc x, zero => true
+  | _, _ => false
+
+\func minus (x y : Nat) : Nat => minus' (x + 1) 0 x y
+  \where
+    \func minus' (fuel diff x y : Nat) : Nat \elim fuel
+      | suc fuel => \case ge (y + diff) x \with {
+        | true => diff
+        | false => minus' fuel (suc diff) x y
+      }
+      | zero => 0
+
+\func mod (x y : Nat) : Nat \elim y
+  | zero => zero
+  | suc y => mod' (x + y + 1) 0 x (suc y)
+  \where
+    \func mod' (fuel acc x y : Nat) : Nat \elim fuel
+      | zero => zero
+      | suc fuel => \case gt ((suc acc) * y) x \with  {
+        | false => mod' fuel (suc acc) x y
+        | true => minus x (acc * y)
+      }
+
+\func gcd (x y : Nat) : Nat => gcd' (x + y + 1) 1 1 x y
+  \where
+    \func gcd' (fuel cnt acc x y : Nat) : Nat \elim fuel
+      | zero => acc
+      | suc fuel => \case (eq (mod x cnt) 0) && (eq (mod y cnt) 0) \with {
+        | false => gcd' fuel (suc cnt) acc x y
+        | true => gcd' fuel (suc cnt) cnt x y
+      }
