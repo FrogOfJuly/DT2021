@@ -68,8 +68,10 @@
   | suc y' => x * (x ^ y')
   | zero => 1
 
-\func fac (x : Nat) : Nat
-      | suc x => (suc x) * fac x
+\func fac (x : Nat) : Nat => fac' x x
+  \where
+    \func fac' (fuel x : Nat) : Nat \elim fuel
+      | suc x' => x * fac' x' x'
       | zero => 1
 
 -- 7. Определите mod и gcd.
@@ -81,19 +83,14 @@
 
 \func ge (x y : Nat) : Bool \elim x, y
   | suc x, suc y => ge x y
-  | suc x, zero => true
+  | zero, suc y => true
   | zero, zero => true
-  | _, _ => false
-
-\func gt (x y : Nat) : Bool \elim x, y
-  | suc x, suc y => gt x y
-  | suc x, zero => true
   | _, _ => false
 
 \func minus (x y : Nat) : Nat => minus' (x + 1) 0 x y
   \where
     \func minus' (fuel diff x y : Nat) : Nat \elim fuel
-      | suc fuel => \case ge (y + diff) x \with {
+      | suc fuel => \case eq (x + diff) y \with {
         | true => diff
         | false => minus' fuel (suc diff) x y
       }
@@ -101,18 +98,13 @@
 
 \func mod (x y : Nat) : Nat \elim y
   | zero => zero
-  | suc y => mod' (x + y + 1) 0 x (suc y)
+  | suc y => mod' (x + 1) x 1 (suc y)
   \where
     \func mod' (fuel acc x y : Nat) : Nat \elim fuel
       | zero => zero
-      | suc fuel => \case gt ((suc acc) * y) x \with  {
+      | suc fuel => \case ge ((suc acc) * y) x \with  {
         | false => mod' fuel (suc acc) x y
         | true => minus x (acc * y)
       }
 
-\func gcd (x y : Nat) : Nat => gcd' (x + y + 1) x y
-  \where
-    \func gcd' (fuel x y : Nat) : Nat \elim fuel, y
-      | _, zero => x
-      | zero, _ => zero
-      | (suc fuel), (suc y) => gcd' fuel (suc y) (mod x (suc y))
+\func gcd (x y : Nat) : Nat => {?}
