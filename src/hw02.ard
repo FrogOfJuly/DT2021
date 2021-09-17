@@ -1,8 +1,44 @@
 \import Utils
 
 -- 1. Определите полиморфный tail для списков.
+\func tail {A : \Type} (l : List A) : List A \elim l
+  | nil => nil {A}
+  | :: a xs => xs
+-- 2 . Реализуйте любой (but choose wisely) алгоритм сортировки. Функцию сравнения можно принимать в качестве аргумента.
 
--- 2. Реализуйте любой (but choose wisely) алгоритм сортировки. Функцию сравнения можно принимать в качестве аргумента.
+\func sort {A : \Type} (cmp : A -> A -> Bool) (l : List A) : List A => from-tree (to-tree l)
+  \where {
+    \data Tree (A' : \Type)
+      | branch (Tree A') A' (Tree A')
+      | leaf
+    \func to-tree {A' : \Type} (f : A' -> Bool) (l : List A') : Tree A' \elim l
+      | nil => leaf
+      | :: a l => branch
+          (to-tree f (filter {A'} f l))
+          a
+          (to-tree f (filter {A'} (\lam x => not (f x)) l))
+        \where {
+          \func filter {A'' : \Type} (f : A'' -> Bool) (l' : List A'') : List A'' \elim  l'
+            | nil => nil
+            | :: a l' => \case f a \with {
+              | true => :: a (filter f l')
+              | false => filter f l'
+            }
+        }
+
+    \func from-tree {A' : \Type} (t : Tree A') : List A'
+      | branch t1 a t2 => (from-tree t1) ++ (:: a nil) ++ (from-tree t2)
+      | leaf => nil
+  }
+
+--  from-tree {A} ( to-tree {A} l)
+--  \where {
+--    \data CmpTree (A' : \Type)
+--        | leaf
+--        | branch (CmpTree A') A' (CmpTree A')
+--    \func to-tree {A' : \Type} (l : List A') : CmpTree A' => {?}
+--    \func from-tree {A' : \Type} (t : CmpTree A') : List A' => {?}
+--  }
 
 -- 3. Докажите ассоциативность && и ||.
 
