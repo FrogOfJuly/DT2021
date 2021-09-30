@@ -69,16 +69,20 @@
 
 \func rdistr (n m k : Nat) : (m + k) * n = m * n + k * n \elim n
   | 0 => idp
-  | suc n => sym (sym (pmap (\lam x => x + k) ((pmap (\lam x => x + m) (rdistr n m k)) *> +-choos _ _ _ )) *> +-assoc _ _ _) *> +-assoc _ _ _
+  | suc n => sym (sym (pmap (\lam x => x + k) ((pmap (\lam x => x + m) (rdistr n m k)) *> +-choose _ _ _ )) *> +-assoc _ _ _) *> +-assoc _ _ _
   \where {
     \func +-assoc (x y z : Nat) : (x + y) + z = x + (y + z) \elim x
       | 0 => idp
       | suc x => pmap suc $ +-assoc x y z
-    \func +-choos (x y z : Nat) : x + y + z = x + z + y  \elim x
+    \func +-choose (x y z : Nat) : x + y + z = x + z + y  \elim x
       | 0 => +-comm y z
-      | suc x => pmap suc $ +-choos x y z
+      | suc x => pmap suc $ +-choose x y z
   }
 
-\func ldistr (n m k : Nat) : n * (m + k) = n * m + n * k \elim n
-  | 0 => {?}
-  | suc n => {?}
+\func ldistr (n m k : Nat) : n * (m + k) = n * m + n * k => (sym (sym ((rdistr n m k *> lemma-ldistr m n k) *> +-comm _ _) *> *-comm _ _)) *> +-comm _ _
+  \where {
+    \func lemma-ldistr (x y z : Nat) : x * y + z * y = y * x + y * z
+      => sum-of-eq (*-comm x y) (*-comm z y)
+    \func sum-of-eq {x x' y y' : Nat} (p : x = x') (q : y = y') : x + y = x' + y'
+      => transport (\lam a => x + y = a + y') p (pmap (\lam b => x + b) q)
+  }
